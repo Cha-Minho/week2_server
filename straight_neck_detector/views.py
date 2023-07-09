@@ -133,7 +133,7 @@ def image_api(request):
         processed_image, _ = image_processing(image)
 
         # Rotate the image 90 degrees clockwise
-        processed_image = processed_image.rotate(-90)
+        processed_image = processed_image.rotate(90)
 
         # Save the processed image
         processed_image_path = os.path.join("week2/media", 'processed_image.png')
