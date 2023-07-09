@@ -1,6 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from straight_neck_detector.models import users
+from straight_neck_detector.models import User
 import json
 
 @csrf_exempt
@@ -11,13 +11,13 @@ def login_view(request):
         password = data.get('password')
 
         try:
-            user = users.objects.get(email=email) # Fetch user from DB
+            user = User.objects.get(email=email) # Fetch user from DB
 
             if user.password == password:
                 return HttpResponse("User logged in.")
             else:
                 return HttpResponse("Invalid username or password.")
-        except users.DoesNotExist:
+        except User.DoesNotExist:
             return HttpResponse("User does not exist.")
     else:
         return HttpResponse("Only POST requests allowed.")
@@ -32,8 +32,8 @@ def register_view(request):
         password = data.get('password')
         is_employed = data.get('is_employed')
 
-        if not users.objects.filter(email=email).exists():  # Check if user with the same email exists
-            user = users(email=email, name=name, password=password, is_employed=is_employed)
+        if not User.objects.filter(email=email).exists():  # Check if user with the same email exists
+            user = User(email=email, name=name, password=password, is_employed=is_employed)
             user.save() # Save the new user to DB
             return HttpResponse("User registered.")
         else:
