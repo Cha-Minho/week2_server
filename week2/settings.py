@@ -153,3 +153,8 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
 )
+
+# settings.py
+
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'
