@@ -13,20 +13,21 @@ from django.conf import settings
 # from multiprocessing import Process
 
 # p1 = Process()
+
 # Initialize
 good_frames = 0
 bad_frames = 0
 
-blue = (255, 127, 0)
-red = (50, 50, 255)
-green = (127, 255, 0)
-dark_blue = (127, 20, 0)
-light_green = (127, 233, 100)
 yellow = (0, 255, 255)
 pink = (255, 0, 255)
 
 mp_pose = mp.solutions.pose
-pose = mp_pose.Pose()
+pose = mp_pose.Pose(
+    static_image_mode=True,  # 정적 이미지 모드로 설정하여 추론 속도 향상
+    model_complexity=1,      # 모델 복잡성을 낮춰 속도 향상
+    min_detection_confidence=0.5,  # 최소 탐지 신뢰도 설정
+    min_tracking_confidence=0.5    # 최소 추적 신뢰도 설정
+)
 
 # Calculate distance
 def findDistance(x1, y1, x2, y2):
@@ -36,17 +37,13 @@ def findDistance(x1, y1, x2, y2):
 
 # Calculate angle.
 def findAngle(x1, y1, x2, y2):
-    theta = m.acos((y2 - y1) * (-y1) / (m.sqrt(
-        (x2 - x1) ** 2 + (y2 - y1) ** 2) * y1))
-    degree = int(180 / m.pi) * theta
+    theta = m.atan2(y2 - y1, x2 - x1)
+    degree = m.degrees(theta)
     return degree
 
 # Function to send alert
-def sendWarning(x):
+def sendWarning():
     pass
-
-
-
 
 def image_processing(image_object):
     copy_object = image_object
@@ -75,29 +72,16 @@ def image_processing(image_object):
         l_hip_y = int(lm.landmark[lmPose.LEFT_HIP].y * h)
 
         # Calculate distances and angles
-        offset = findDistance(l_shldr_x, l_shldr_y, r_shldr_x, r_shldr_y)
         neck_inclination = findAngle(l_shldr_x, l_shldr_y, l_ear_x, l_ear_y)
         torso_inclination = findAngle(l_hip_x, l_hip_y, l_shldr_x, l_shldr_y)
 
         # Draw the landmarks on the image
         draw = ImageDraw.Draw(image_object)
+        landmarks = [lmPose.LEFT_SHOULDER, lmPose.RIGHT_SHOULDER, lmPose.LEFT_EAR, lmPose.LEFT_HIP]
         for id, landmark in enumerate(lm.landmark):
-            x, y = int(landmark.x * w), int(landmark.y * h)
-            draw.ellipse([x-5, y-5, x+5, y+5], fill=yellow)
-        
-        # Connect landmarks with lines
-        connections = mp_pose.POSE_CONNECTIONS
-        for connection in connections:
-            start_idx = connection[0]
-            end_idx = connection[1]
-        
-            start_landmark = lm.landmark[start_idx]
-            end_landmark = lm.landmark[end_idx]
-        
-            start_x, start_y = int(start_landmark.x * w), int(start_landmark.y * h)
-            end_x, end_y = int(end_landmark.x * w), int(end_landmark.y * h)
-        
-            draw.line([(start_x, start_y), (end_x, end_y)], fill=pink, width=2)
+            if id in landmarks:
+                x, y = int(landmark.x * w), int(landmark.y * h)
+                draw.ellipse([x-5, y-5, x+5, y+5], fill=yellow)
 
         # Determine whether good posture or bad posture
         bad_posture = False
@@ -142,14 +126,14 @@ def image_api(request):
         output = BytesIO()
         processed_image.save(output, format='PNG')
         response = HttpResponse(content_type='image/png')
-        response.write(output.getvalue())
-        end_time = time.time()
-        print(end_time - start_time)
+        response = HttpResponse(content_type='image/png')
+        output.seek(0)
+        response.write(output.read())
+        output.close()
+        print("--- %s seconds ---" % (time.time() - start_time))
         return response
-        
     else:
-        return HttpResponseBadRequest('Only POST request are allowed')
-
+        return HttpResponseBadRequest("Only POST method allowed")
 
 
 @csrf_exempt

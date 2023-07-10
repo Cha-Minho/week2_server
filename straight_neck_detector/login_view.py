@@ -1,4 +1,4 @@
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest
 from django.views.decorators.csrf import csrf_exempt
 from straight_neck_detector.models import User
 import json
@@ -9,19 +9,22 @@ def login_view(request):
         data = json.loads(request.body)
         email = data.get('email')
         password = data.get('password')
-
+        print(email, password)
         try:
-            user = User.objects.get(email=email) # Fetch user from DB
+            user = User.objects.get(email=email)  # Fetch user from DB
 
             if user.password == password:
-                return HttpResponse("User logged in.")
+                print("login success")
+                return HttpResponse(f"{user.UserID}")
             else:
-                return HttpResponse("Invalid username or password.")
+                print("Invalid username or password.")
+                return HttpResponseBadRequest("Invalid username or password.")
         except User.DoesNotExist:
-            return HttpResponse("User does not exist.")
+            print("User does not exist.")
+            return HttpResponseBadRequest("User does not exist.")
     else:
-        return HttpResponse("Only POST requests allowed.")
-
+        print("Only POST requests allowed.")
+        return HttpResponseBadRequest("Only POST requests allowed.")
 
 @csrf_exempt
 def register_view(request):
@@ -34,7 +37,7 @@ def register_view(request):
 
         if not User.objects.filter(email=email).exists():  # Check if user with the same email exists
             user = User(email=email, name=name, password=password, is_employed=is_employed)
-            user.save() # Save the new user to DB
+            user.save()  # Save the new user to DB
             return HttpResponse("User registered.")
         else:
             return HttpResponse("User with this email already exists.")

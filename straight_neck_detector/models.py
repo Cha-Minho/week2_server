@@ -20,6 +20,7 @@ class Post(models.Model):
     def __str__(self):
         return self.title
 
+
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -28,3 +29,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.context
+
+class Dummy(models.Model):
+    def __str__(self):
+        return "dummy data table"
