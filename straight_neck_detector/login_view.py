@@ -43,3 +43,17 @@ def register_view(request):
             return HttpResponse("User with this email already exists.")
     else:
         return HttpResponse("Only POST requests allowed.")
+
+@csrf_exempt
+def what_is_name(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        id = data.get("userId")
+
+        try:
+            user = User.objects.get(UserID = id)
+            print(id)
+            print(f"{user.name}")
+            return JsonResponse({'name': user.name})
+        except:
+            return HttpResponseBadRequest("User not found")

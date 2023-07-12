@@ -14,5 +14,11 @@ urlpatterns = [
     path('test/', views.for_test),
     path('post/', posting),
     path('delete_post/', deleting),
-    path('load_post', load_post),
+    path('load_post/', load_post),
+    path('edit_post/', edit_post),
+    path('comment/', comment),
+    path('load_comments/<int:post_id>/', load_comment),
+    path('delete_comments/', delete_comment),
+    path('search_post/', search_post),
+    path('ur_name/', what_is_name),
 ]
